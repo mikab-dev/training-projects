@@ -35,6 +35,7 @@ function createMatrix(width, height) {
 function draw() {
   context.fillStyle = "#000";
   context.fillRect(0, 0, canvas.width, canvas.height);
+  drawMatrix(arena, { x: 0, y: 0 });
   drawMatrix(player.matrix, player.pos);
 }
 
@@ -61,7 +62,36 @@ function merge(arena, player) {
 
 function playerDrop() {
   player.pos.y++;
+  if (collide(arena, player)) {
+    player.pos.y--;
+    merge(arena, player);
+    player.pos.y = 0;
+  }
   dropCounter = 0;
+}
+
+function playerMove(direction) {
+  player.pos.x += direction;
+  if (collide(arena, player)) {
+    player.pos.x -= direction;
+  }
+}
+
+function playerRotate(direction) {
+  rotate(player.matrix, direction);
+}
+
+function rotate(matrix, direction) {
+  for (let y = 0; y < matrix.length; ++y) {
+    for (let x = 0; x < y; ++x) {
+      [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+    }
+    if (direction > 0) {
+      matrix.forEach((row) => row.reverse());
+    } else {
+      matrix.reverse();
+    }
+  }
 }
 
 let dropCounter = 0;
@@ -90,16 +120,23 @@ const player = {
 
 document.addEventListener("keydown", (event) => {
   let pressedKey = event.key;
+  console.log(pressedKey);
 
   switch (pressedKey) {
     case "ArrowLeft":
-      player.pos.x--;
+      playerMove(-1);
       break;
     case "ArrowRight":
-      player.pos.x++;
+      playerMove(1);
       break;
     case "ArrowDown":
       playerDrop();
+      break;
+    case "a":
+      playerRotate(-1);
+      break;
+    case "e":
+      playerRotate(1);
       break;
     default:
       console.log("This key does nothing");
